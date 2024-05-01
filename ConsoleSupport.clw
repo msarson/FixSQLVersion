@@ -26,28 +26,30 @@ ConsoleSupport.Construct  PROCEDURE
 ConsoleSupport.Destruct   PROCEDURE
   CODE
 
-ConsoleSupport.Init   PROCEDURE () !,BYTE,VIRTUAL
+ConsoleSupport.Init   PROCEDURE (LONG InputSupport=1) !,BYTE,VIRTUAL
   CODE
 
+  Self.InputSupport = InputSupport
   SELF.OutputHandle = GetStdHandle(STD_OUTPUT_HANDLE)
   IF SELF.OutputHandle = INVALID_HANDLE_VALUE
     Halt(1,'Unable to get output handle (' & SELF.GetLastSystemError() & ')')
     RETURN INVALID_HANDLE_VALUE
   END
 
-  SELF.InputHandle = GetStdHandle(STD_INPUT_HANDLE)
-  IF SELF.InputHandle = INVALID_HANDLE_VALUE
-    Halt(2,'Unable to get console input handle (' & SELF.GetLastSystemError() & ')')
-    RETURN INVALID_HANDLE_VALUE
+  IF SELF.InputSupport
+    SELF.InputHandle = GetStdHandle(STD_INPUT_HANDLE)
+    IF SELF.InputHandle = INVALID_HANDLE_VALUE
+        Halt(2,'Unable to get console input handle (' & SELF.GetLastSystemError() & ')')
+        RETURN INVALID_HANDLE_VALUE
+    END
+
+    IF SELF.InputHandle <> 0
+        IF ~SetConsoleMode(SELF.InputHandle,ENABLE_PROCESSED_INPUT )
+        Halt(3,'Unable to set console mode (' & SELF.GetLastSystemError() & ') SELF.InputHandle = ' & SELF.InputHandle)
+        RETURN INVALID_OTHER
+        END
+    END
   END
-
-!   IF SELF.InputHandle <> 0
-!     IF ~SetConsoleMode(SELF.InputHandle,ENABLE_PROCESSED_INPUT )
-!       Halt(3,'Unable to set console mode (' & SELF.GetLastSystemError() & ') SELF.InputHandle = ' & SELF.InputHandle)
-!       RETURN INVALID_OTHER
-!     END
-!   END
-
   RETURN FALSE
 
 ConsoleSupport.WriteLine  PROCEDURE (STRING pText) !,BYTE,PROC,VIRTUAL
@@ -62,17 +64,20 @@ ConsoleSupport.WriteLine  PROCEDURE (STRING pText) !,BYTE,PROC,VIRTUAL
   END
   RETURN FALSE
 
-! Consolesupport.ReadKey    PROCEDURE () !,STRING,PROC,VIRTUAL
-!   CODE
-!   SELF.WriteLine('Press any key to continue...')
-!   Clear(SELF.InBuffer)
-!   Loop
-!     IF ReadConsole(SELF.InputHandle,Address(SELF.InBuffer),100,Address(SELF.BytesRead),NULL) = 0 THEN
-!       Halt(5,'Error on read console (' & SELF.GetLastSystemError() & ')')
-!       Break
-!     END
-!   Until SELF.BytesRead > 0
-!   RETURN SELF.InBuffer
+Consolesupport.ReadKey    PROCEDURE () !,STRING,PROC,VIRTUAL
+  CODE
+  IF ~Self.InputSupport
+    RETURN ''
+  END
+  SELF.WriteLine('Press any key to continue...')
+  Clear(SELF.InBuffer)
+  Loop
+    IF ReadConsole(SELF.InputHandle,Address(SELF.InBuffer),100,Address(SELF.BytesRead),NULL) = 0 THEN
+      Halt(5,'Error on read console (' & SELF.GetLastSystemError() & ')')
+      Break
+    END
+  Until SELF.BytesRead > 0
+  RETURN SELF.InBuffer
 
 
 Consolesupport.GetLastSystemError PROCEDURE ( LONG pLastErr=0 ) !,STRING

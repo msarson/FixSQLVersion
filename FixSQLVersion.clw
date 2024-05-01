@@ -25,7 +25,7 @@ ProjectCounter      LONG
 stPath StringTheory
   CODE
   stPath.SetValue(stPath.PathOnly(COmmand(0)))
-  Console.Init()
+  Console.Init(0)
   IF ~stVersion.LoadFile(stPath.GetValue() & '\version.ini') THEN
     Console.WriteLine('No Verion.Ini in Directory: ' & stPath.GetValue())
     RETURN

@@ -36,11 +36,12 @@ inBuffer            CSTRING(2048)
 bytesWritten        LONG
 bytesRead           LONG
 prefix 		          CSTRING(21)
+InputSupport       LONG
 ! Methods
 Construct               PROCEDURE
 Destruct                PROCEDURE () ,VIRTUAL
-Init                    PROCEDURE () ,BYTE,PROC,VIRTUAL
+Init                    PROCEDURE (LONG InputSupport=1) ,BYTE,PROC,VIRTUAL
 WriteLine			          PROCEDURE (STRING pText) ,BYTE,PROC,VIRTUAL
-! ReadKey  			          PROCEDURE () ,STRING,PROC,VIRTUAL
+ReadKey  			          PROCEDURE () ,STRING,PROC,VIRTUAL
 GetLastSystemError      PROCEDURE ( LONG pLastErr=0 ) ,STRING
                      END
